@@ -1,0 +1,9 @@
+{
+    "mappers": [
+        {
+            "name": "Vikunja Team Mapping",
+            "fileName": "mksp-vikunja-mapper.js",
+            "description": "Maps Client roles to Vikunja Teams according to the required format."
+        }
+    ]
+}
