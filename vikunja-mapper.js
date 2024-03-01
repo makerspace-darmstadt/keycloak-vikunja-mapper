@@ -1,22 +1,25 @@
-// This script contains a custom attribute mapper to map
-// client roles to vikunja teams in the format that is required
-// by vikunja. 
-
-// Other roles or other logic could also be used, depending on your
-// use case.
+// Import Java native types
+ArrayList = Java.type("java.util.ArrayList");
+HashMap = Java.type("java.util.HashMap");
 
 // Get client we're operating on
 var client = keycloakSession.getContext().getClient();
 
+// Create group list
+var list = new ArrayList();
+
 // Iterate through all client role assignments and add value to vikunja_groups
-var groups = [];
 user.getClientRoleMappingsStream(client).forEach(function (roleModel) {
 
-    groups.push({
-        oidcID: roleModel.getId(),
-        name: roleModel.getName()
-    });
+    // Create a hash map for this role
+    var role_map = new HashMap();
+    role_map.put("oidcID", roleModel.getId());
+    role_map.put("name", roleModel.getName());
+
+    // Add it to the list
+    list.add(role_map);
+
 });
 
-// Set claim. Using export doesn't work due to JSON type parsing in Keycloak
-token.setOtherClaims("vikunja_groups", Java.to(groups, "java.util.Map[]"));
+// Return the list
+exports = list;
