@@ -8,16 +8,20 @@ var client = keycloakSession.getContext().getClient();
 // Create group list
 var list = new ArrayList();
 
-// Iterate through all client role assignments and add value to vikunja_groups
-user.getClientRoleMappingsStream(client).forEach(function (roleModel) {
+// Iterate through all client roles available for this client
+client.getRolesStream().forEach(function (roleModel) {
 
-    // Create a hash map for this role
-    var role_map = new HashMap();
-    role_map.put("oidcID", roleModel.getId());
-    role_map.put("name", roleModel.getName());
+    // If the user has this role, either directly or indirectly, add it to the list
+    if (user.hasRole(roleModel)) {
 
-    // Add it to the list
-    list.add(role_map);
+        // Create a hash map for this role
+        var role_map = new HashMap();
+        role_map.put("oidcID", roleModel.getId());
+        role_map.put("name", roleModel.getName());
+
+        // Add it to the list
+        list.add(role_map);
+    }
 
 });
 
