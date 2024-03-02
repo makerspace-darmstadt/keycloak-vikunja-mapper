@@ -3,11 +3,11 @@ Vikunja Group Mapper for Keycloak
 
 [Vikunja](https://vikunja.io) is an open-source, self-hostable ToDo app. Next to local accounts it supports OpenID Connect based authentication. Based on a [recent PR](https://kolaente.dev/vikunja/vikunja/pulls/1393/files#diff-8eb6109e24fdfb13abac65ac57c38c64efea1bd7) it is now also possible to dynamically add users to Vikunja Teams when authenticating through OIDC.
 
-This requires the Access Token (AT) to contain a `vikunja_groups` claim using the format defined below. It is not possible to achieve this format Using the built-in mappers. Therefore, this repository therefore contains a custom Javascript provider implementing an [OpenID Connect Protocol mapper](https://www.keycloak.org/docs/latest/server_development/index.html#_script_providers) that can map client specific roles to Vikunja Teams in the required format.
+This requires the [ID Token](https://openid.net/specs/openid-connect-core-1_0.html#IDToken) to contain a `vikunja_groups` claim using the format defined below. It is not possible to achieve this format Using the built-in mappers. Therefore, this repository therefore contains a custom Javascript provider implementing an [OpenID Connect Protocol mapper](https://www.keycloak.org/docs/latest/server_development/index.html#_script_providers) that can map client specific roles to Vikunja Teams in the required format.
 
 # Background
 
-Vikunja requires a certain claim `vikunja_groups` to be present in the access token to allow dynamic team mapping. This claim name is hardcoded and cannot be changed, and expects the following structure:
+Vikunja requires a certain claim `vikunja_groups` to be present in the ID token to allow dynamic team mapping. This claim name is hardcoded and cannot be changed, and expects the following structure:
 
 ```json
 {
@@ -67,7 +67,7 @@ The recommended way to use this custom provier is to add a custom scope at realm
 - Set the **name** and **token claim name** to `vikunja_groups`
 - Set **Multivalued** to `enabled`
 - Set the **Claim JSON type** to `JSON`
-- Disable all sliders except for **Add to access token**
+- Disable all sliders except for **Add to ID token**
 - Save the mapper
 
 Next, go to the Vikunja Client and perform the following steps:
@@ -75,7 +75,7 @@ Next, go to the Vikunja Client and perform the following steps:
 - Switch to the **Roles** tab and create client roles for each Team you want to manage. The role name will be used as Team name in Vikunja. You can now assign users or user groups to these roles.
 - Switch to **Client Scopes**, click **Add client scope** and add the previously configured client scope.
 
-You can test the configuration by using the **Evaluate** tab, add the `vikunja_scope` parameter and select a user with at least one client role assignment. You should now see the required claim in the access token preview shown below.
+You can test the configuration by using the **Evaluate** tab, add the `vikunja_scope` parameter and select a user with at least one client role assignment. You should now see the required claim in the id token preview shown below.
 
 # Local development
 
