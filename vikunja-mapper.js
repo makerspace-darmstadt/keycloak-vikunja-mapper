@@ -19,6 +19,17 @@ client.getRolesStream().forEach(function (roleModel) {
         role_map.put("oidcID", roleModel.getId());
         role_map.put("name", roleModel.getName());
 
+        // Extract attributes from the role
+        var attributes = roleModel.getAttributes();
+
+        // If isPublic or description is set, add it to the map
+        if (attributes.containsKey("isPublic")) {
+            role_map.put("isPublic", roleModel.getFirstAttribute("isPublic") === "true");
+        }
+        if (attributes.containsKey("description")) {
+            role_map.put("description", roleModel.getFirstAttribute("description"));
+        }
+
         // Add it to the list
         list.add(role_map);
     }

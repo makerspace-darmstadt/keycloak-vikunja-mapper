@@ -18,15 +18,19 @@ Vikunja requires a certain claim `vikunja_groups` to be present in the ID token 
         },
         {
             "name": "team 2",
-            "oidcID": 35933
+            "oidcID": 35933,
+            "isPublic": true,
+            "description": "My teams scription"
         }
     ]
 }
 ```
 
-The `name` represents the display name of the Team in Vikunja and the `oidcID` is a unique string (max 250 characters) that should never change during the lifecycle of a team.
+The `name` represents the display name of the Team in Vikunja and the `oidcID` is a unique string (max 250 characters) that should never change during the lifecycle of a team. `description` and `isPublic` are optional parameters.
 
 There's various options how to handle these requirements in Keycloak, the least intrusive method (and the one we're using and which is supported by the mapper in this repository) is to use **Client Roles** to represent Vikunja teams, which can then either be assigned to individual users or user groups. Keycloak automatically assignes a unique UUID4 to each client role, which this mapper is using as `oidcID`, while the name of the client role is used as name for the team.
+
+The `isPublic` controls the visibility of the project. If true, everyone can share projects with this team, even if they're not direct team members. It defaults to false if not configured.
 
 For Vikunja it doesn't matter how the claim gets added to the token, although the standard way would be to configure the app to request an additional scope (the documentation recommends to use `vikunja_scope`) and assigning the custom mapper to it. This approach is described below, it is however also possible to simply add the mapper to the client directly and set it to `Default` in Keycloak.
 
@@ -81,6 +85,30 @@ You can test the configuration by using the **Evaluate** tab, add the `vikunja_s
 
 When working on the script, it is advisable to spin up a local development instance of Keycloak. The following command simply creates the `.jar` file needed for Keycloak, mounts it into a container and exposes Keyloak on port 8080 locally.
 
+## One Time volume setup
+
+This step is optional, however Keycloak will lose all data when restarting. To avoid, prepare a volume that can be mounted to persist the H2 database:
+
+```bash
+docker volume create keycloak
+
+docker run \
+    --rm \
+    --entrypoint chown \
+    -v keycloak:/keycloak \
+    alpine -R 1000:0 /keycloak
+```
+
+## Start Keycloak
+
+Without volume:
+
 ```bash
 rm keycloak-vikunja-mapper.jar && zip -vr keycloak-vikunja-mapper.jar vikunja-mapper.js META-INF && docker run -v $(pwd)/keycloak-vikunja-mapper.jar:/opt/keycloak/providers/keycloak-vikunja-mapper.jar -p 8080:8080 -e KEYCLOAK_ADMIN=admin -e KEYCLOAK_ADMIN_PASSWORD=admin quay.io/keycloak/keycloak:23.0.7 start-dev --features="scripts"
+```
+
+With volume:
+
+```bash
+rm keycloak-vikunja-mapper.jar && zip -vr keycloak-vikunja-mapper.jar vikunja-mapper.js META-INF && docker run -v $(pwd)/keycloak-vikunja-mapper.jar:/opt/keycloak/providers/keycloak-vikunja-mapper.jar -v keycloak:/opt/keycloak/data/h2 -p 8080:8080 -e KEYCLOAK_ADMIN=admin -e KEYCLOAK_ADMIN_PASSWORD=admin quay.io/keycloak/keycloak:23.0.7 start-dev --features="scripts"
 ```
